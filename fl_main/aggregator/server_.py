@@ -274,7 +274,46 @@ class server :
 
     async def _push_cluster_models(self) -> List[Any]:
         """Pushing cluster models to DB"""
+        model_id = self.sm.cluster_model_ids[-1]
+        models = convert_LDict_to_Dict(self.sm.cluster_models)
+        meta_dict = ({"num_samples" : self.sm.own_cluster_num_samples})
+        return await self.push_models(self.sm.id , ModelType.cluster, models, model.id, time.time(), meta_dict)
+    
+
+    
+    async def push_models(self,
+                           component_id: str,
+                           model_type: ModelType,
+                           models: Dict[str, np.array],
+                           model_id: str,
+                           gene_time: float,
+                           performance_dict: Dict[str, float]) -> List[Any]:
+        """
+        Push a given set of models to DB
+        :param component_id:
+        :param models: LimitedDict - models
+        :param model_type: model type
+        :param model_id: str - model ID
+        :param gene_time: float - the time at which the models were generated
+        :param performance_dict: Dict[str, float] - Each entry is a pair of model id and its performance metric
+        :return: Response message (List)
+        """
+        msg = generate_db_push_message(component_id, self.sm.round, model_type, models, model_id, gene_time, performance_dict)
+        resp = await send(msg, self.db_ip, self.db_socket)
+        logging.info(f'--- Models pushed to DB: Response {resp} ---')
+
+        return resp
 
 
 
+if __name__ == "__main__":
 
+    logging.basicConfig(level=logging.INFO)
+
+    s = Server()
+    logging.info("--- Aggregator Started ---")
+
+    init_fl_server(s.register, 
+                   s.receive_msg_from_agent, 
+                   s.model_synthesis_routine(), 
+                   s.aggr_ip, s.reg_socket, s.recv_socket)
