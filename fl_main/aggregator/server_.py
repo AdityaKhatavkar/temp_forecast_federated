@@ -317,3 +317,15 @@ if __name__ == "__main__":
                    s.receive_msg_from_agent, 
                    s.model_synthesis_routine(), 
                    s.aggr_ip, s.reg_socket, s.recv_socket)
+
+
+
+"""
+s.register, 
+s.receive_msg_from_agent, 
+s.model_synthesis_routine()
+
+these funcitons are for starting the registration process of the agents,
+receiving message from the agents, 
+starting the modely synthesis process to create a global model
+"""
