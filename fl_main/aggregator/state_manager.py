@@ -176,4 +176,4 @@ class StateManager :
         Increment the round number (called after each global model synthesis)
         :return:
         """
-        self.round += 1
+        self.round += 1 
