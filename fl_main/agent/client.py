@@ -23,9 +23,9 @@ from fl_main.lib.util.communication_handler import init_client_server, send, rec
 
 from fl_main.lib.util.helpers import read_config, init_loop, save_model_file, load_model_file, set_config_file, get_ip, compatible_data_dict_read, generate_model_id, create_data_dict_from_models, create_meta_data_dict, generate_id, read_state, write_state
 
-from fl_main.lib.util.states import AggMsgType, PollingMSGLocation, ClientState, AGgMsgType, ParitcipateConfirmationMSGLocation, GMDistributionMsgLocation, IDPrefix
+from fl_main.lib.util.states import AggMsgType, PollingMSGLocation, ClientState, ParticipateConfirmationMSGLocation, GMDistributionMsgLocation, IDPrefix
 
-from fl_main.lib.util.messengers import generate_lmodel_update_messages, generate_agent_participation_message, generate_pooling_message, generate_lmodel_update_message
+from fl_main.lib.util.messengers import generate_lmodel_update_message, generate_agent_participation_message, generate_polling_message, generate_lmodel_update_message
 
 
 # Defining the client class
@@ -35,7 +35,7 @@ from fl_main.lib.util.messengers import generate_lmodel_update_messages, generat
 class Client : 
 
     """Initialization"""
-    def __inti__(self):
+    def __init__(self):
         
         # generate unique id for client itself
         self.agent_name = "default_agent"
@@ -54,7 +54,7 @@ class Client :
         self.config = read_config(config_file)
 
         ## ip address of the aggregator machine or instance
-        self.aggr_ip = self.config('aggr_ip')
+        self.aggr_ip = self.config['aggr_ip']
         self.reg_socket = self.config['reg_socket']  #setting up the port
 
         #send local ml model to the aggregaor
@@ -67,7 +67,7 @@ class Client :
             self.agent_name = sys.argv[3]
 
         # stores the path ot local and global models
-        self.model_path = f'{self.config["modle_path"] } {self.agent_name}'
+        self.model_path = f'{self.config["model_path"] } {self.agent_name}'
         # if there is no directory to save models
         if not os.path.exists(self.model_path):
             os.makedirs(self.model_path)
@@ -75,7 +75,7 @@ class Client :
         # self.lmfile, gmfile, statefile : for sate of local modles, global models, state of client respectively
         self.lmfile = self.config['local_model_file_name']
         self.gmfile = self.config['global_model_file_name']
-        self.staefile = self.config['state_file_name']
+        self.statefile = self.config['state_file_name']
 
         # round information of fl process
         self.round = 0
@@ -107,15 +107,15 @@ class Client :
         # Parse the response message
         # including some socket info and the actual round number
         resp = await send(msg, self.aggr_ip, self.reg_socket) # resp receives :  round info, port no to receive global model's exch_socket, port no. to send the local model to aggregator's msend_socket, updated agent id
-        self.round = resp[int(ParitcipateConfirmationMSGLocation.round)]
-        self.exch_socket = resp[int(ParitcipateConfirmationMSGLocation.exch_socket)]
-        self.msend_socket = resp[int(ParitcipateConfirmationMSGLocation.agent_id)]
+        self.round = resp[int(ParticipateConfirmationMSGLocation.round)]
+        self.exch_socket = resp[int(ParticipateConfirmationMSGLocation.exch_socket)]
+        self.msend_socket = resp[int(ParticipateConfirmationMSGLocation.agent_id)]
 
         # Receiving the welcome message
-        logging.info(f'--- {resp[int(ParitcipateConfirmationMSGLocation.msg_type)]} Message Received ---')
+        logging.info(f'--- {resp[int(ParticipateConfirmationMSGLocation.msg_type)]} Message Received ---')
 
 
-        self.save_model_from_message(resp, ParitcipateConfirmationMSGLocation)
+        self.save_model_from_message(resp, ParticipateConfirmationMSGLocation)
 
 ####### So, it was about the participation of the agent ###########
 
@@ -182,7 +182,7 @@ class Client :
         logging.info(f'---- polling to see if there any update')
         
         #Generate polling message to send to aggregator
-        msg = generate_pooling_message(self.round, self.id)
+        msg = generate_polling_message(self.round, self.id)
 
         resp = await send(msg, self.aggr_ip, self.msend_socket)
 
@@ -273,7 +273,7 @@ into the local ML engine."""
         :param state: ClientState
         :return:
         """
-        write_state(self.model_path, self.statefiel, state)
+        write_state(self.model_path, self.statefile, state)
 
     
     #send models that saved locally to the aggregator

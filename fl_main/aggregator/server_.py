@@ -56,7 +56,7 @@ class server :
         self.exch_socket = self.config['exch_socket']#exch_socket is port no.used to send the global model back to the agent
 
         # Set up DB info to connect with DB
-        self.db_ip = self.config['dp_ip'] #ip addr of database server
+        self.db_ip = self.config['db_ip'] #ip addr of database server
         self.db_socket = self.config['db_socket'] #port no of database server
 
         # thresholds

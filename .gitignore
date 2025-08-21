@@ -1,1 +1,23 @@
+# Ignore model data files
+db/models/*
+!db/models/.gitkeep   # keep the folder but ignore contents
+
+# Ignore virtual environment
 myenv/
+
+# Ignore cache and temporary files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.tmp
+
+# Ignore dataset/agent state files
+data/
+state/
+
+# Ignore OS/IDE files
+.DS_Store
+*.swp
+.vscode/

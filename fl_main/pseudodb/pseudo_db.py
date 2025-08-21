@@ -20,7 +20,7 @@ class PseudoDB :
     # initializing pseudoDB
 
     def __init__(self):
-        def __init__(self):
+        
 
             # Database ID just in case
             self.id = generate_id()
@@ -41,7 +41,7 @@ class PseudoDB :
             # int DB
             self.db_file = f'{self.data_path}/model_data{time.time()}.db'
             self.dbhandler =  SQLiteDBHandler(self.db_file)
-            self.dbhandler.initialize_DB()
+            self.dbhandler.initialize_db()
 
             # Model save location
             # if there is no directory to save models

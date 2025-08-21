@@ -19,7 +19,7 @@ class SQLiteDBHandler :
     def initialize_db(self):
         """This function create the db table """
         conn = sqlite3.connect(f'{self.db_file}')
-        c = conn()
+        c = conn.cursor()
 
         #create the table for each model type
 
