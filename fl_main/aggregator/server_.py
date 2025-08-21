@@ -44,8 +44,8 @@ class server :
         self.config = read_config(config_file) #stores info from congig_aggregator.json file
 
         # functional components
-        self.sm = statemanager()
-        self.agg = aggregator(self.sm) #aggregation functions
+        self.sm = StateManager()
+        self.agg = Aggregator(self.sm) #aggregation functions
 
         # Set up FL server's IP address
         self.aggr_ip = self.config['aggr_ip'] #reads ip addr fron aggregator's configuration file
@@ -146,7 +146,7 @@ class server :
         gene_time = msg[int(ParticipateMSGLocation.gene_time)]
         lmodels = msg[int(ParticipateMSGLocation.lmodels)] # <- Extract local models
         performance = msg[int(ParticipateMSGLocation.meta_data)]
-        init_weight_flag = bool(msg[init(ParticipateMSGLocation.init_flage)])
+        init_weight_flag = bool(msg[int(ParticipateMSGLocation.init_flage)])
 
         # Initialize model info 
         self.sm.initialize_model_info(lmodels, init_weight_flag)
@@ -161,7 +161,7 @@ class server :
     async def _send_updated_global_model(self, websocket, agent_id, exch_socket):
 
         model_id = self.sm.cluster_model_ids[-1]
-        cluster_models = convert_Ldict_to_dict(self.sm.cluster_models)
+        cluster_models = convert_LDict_to_Dict(self.sm.cluster_models)
 
         reply = generate_agent_participation_confirm_message(self.sm.id, model_id, cluster_models, self.sm.round, agent_id, exch_socket, self.recv_socket)
         await send_websocket(reply, websocket)
@@ -182,10 +182,10 @@ class server :
         :return:
         """
         msg = await receive(websocket)
-        if msg[int(ModelUpMSGLocation.msg_type)] == AgentMSGType.update : 
+        if msg[int(ModelUpMSGLocation.msg_type)] == AgentMsgType.update : 
             await self._process_lmodel_upload(msg)
 
-        elif msg[int(PollingMSGLocation.msg_type)] == AgentMSGType.polling : 
+        elif msg[int(PollingMSGLocation.msg_type)] == AgentMsgType.polling : 
             await self._process_polling(msg, websocket)
 
             
@@ -218,8 +218,8 @@ class server :
 
         if self.sm.round > int(msg[PollingMSGLocation.round]):
             model_id = self.sm.cluster_model_ids[-1]
-            cluster_models = convert_Ldict_to_dict(self.sm.cluster_models)
-            msg = generate_cluster_model_dict_message(self.sm.id, model_id, self.sm.round, cluster_models)
+            cluster_models = convert_LDict_to_Dict(self.sm.cluster_models)
+            msg = generate_cluster_model_dist_message(self.sm.id, model_id, self.sm.round, cluster_models)
         
         else : 
             ack = generate_ack_message()
@@ -288,7 +288,7 @@ class server :
         model_id = self.sm.cluster_model_ids[-1]
         models = convert_LDict_to_Dict(self.sm.cluster_models)
         meta_dict = ({"num_samples" : self.sm.own_cluster_num_samples})
-        return await self.push_models(self.sm.id , ModelType.cluster, models, model.id, time.time(), meta_dict)
+        return await self.push_models(self.sm.id , ModelType.cluster, models, model_id, time.time(), meta_dict)
     
 
     
@@ -321,7 +321,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
 
-    s = Server()
+    s = server()
     logging.info("--- Aggregator Started ---")
 
     init_fl_server(s.register, 
