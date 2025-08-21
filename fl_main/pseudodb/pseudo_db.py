@@ -6,7 +6,7 @@
 
 import pickle, logging, time, os
 from typing import Any, List
-from .sqlite_db import SQLiteDBHandler
+from .sqlitedb import SQLiteDBHandler
 from fl_main.lib.util.helpers import generate_id, read_config, set_config_file
 from fl_main.lib.util.states import DBMsgType, DBPushMsgLocation, ModelType
 from fl_main.lib.util.communication_handler import init_db_server, send_websocket, receive

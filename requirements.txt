@@ -1,6 +1,6 @@
-python 
 numpy
 pandas
-sklearn
+scikit-learn
 flask
-pickle
+websockets
+getmac

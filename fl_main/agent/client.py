@@ -21,11 +21,11 @@ from threading import Thread
 
 from fl_main.lib.util.communication_handler import init_client_server, send, receive
 
-from fl_main.lib.util.helpers import read_config, init_loop, save_model_file, load_model_file, set_config_file, get_ip, compatible_data_dict_read, generate_model_id, create_data_dict_from_models, create_meta_data_dict
+from fl_main.lib.util.helpers import read_config, init_loop, save_model_file, load_model_file, set_config_file, get_ip, compatible_data_dict_read, generate_model_id, create_data_dict_from_models, create_meta_data_dict, generate_id, read_state, write_state
 
-from fl_main.lib.util.states import ClientState, AGgMsgType, ParitcipateConfirmationMSGLocation, GMDistributionMsgLocation, IDPrefix
+from fl_main.lib.util.states import AggMsgType, PollingMSGLocation, ClientState, AGgMsgType, ParitcipateConfirmationMSGLocation, GMDistributionMsgLocation, IDPrefix
 
-from fl_main.lib.util.messengers import generate_lmodel_update_messages, generate_agent_participation_message, generate_pooling_message
+from fl_main.lib.util.messengers import generate_lmodel_update_messages, generate_agent_participation_message, generate_pooling_message, generate_lmodel_update_message
 
 
 # Defining the client class
@@ -96,10 +96,10 @@ class Client :
         data_dict, performance_dict  = load_model_file(self.model_path, self.lmfile)
         _, gene_time, modles, model_id = compatible_data_dict_read(data_dict)
 
-        logging.debug(models)
+        logging.debug(modles)
 
         # message 
-        msg = generate_agent_participation_message(self.agent_name, self.id, model_id, models,self.init_weights_flags, self.simulation_flag, self.exch_socket, gene_time, performance_dict, self.agent_ip)
+        msg = generate_agent_participation_message(self.agent_name, self.id, model_id, modles,self.init_weights_flags, self.simulation_flag, self.exch_socket, gene_time, performance_dict, self.agent_ip)
         logging.debug(msg)
         logging.info(f"--- Init Response: {resp} ---")
 
@@ -112,7 +112,7 @@ class Client :
         self.msend_socket = resp[int(ParitcipateConfirmationMSGLocation.agent_id)]
 
         # Receiving the welcome message
-        logging.info(f'--- {resp[int(ParticipateConfirmationMSGLocation.msg_type)]} Message Received ---')
+        logging.info(f'--- {resp[int(ParitcipateConfirmationMSGLocation.msg_type)]} Message Received ---')
 
 
         self.save_model_from_message(resp, ParitcipateConfirmationMSGLocation)
@@ -186,7 +186,7 @@ class Client :
 
         resp = await send(msg, self.aggr_ip, self.msend_socket)
 
-        if resp[int(PollingMsgLocation.msg_type)] == AggMsgType.update: #response msg contain updated model
+        if resp[int(PollingMSGLocation.msg_type)] == AggMsgType.update: #response msg contain updated model
             logging.info(f'--- Global Model Received ---')
             self.save_mode_from_message(resp, GMDistributionMsgLocation)
 
@@ -264,9 +264,9 @@ into the local ML engine."""
         Read the value in the state file specified by model path
         :return: ClientState - A state indicated in the file
         """
-        return read_state(self.model_path, self,statefile)
+        return read_state(self.model_path, self.statefile)
     
-    def tran_stae(self,state: ClientState):
+    def tran_state(self,state: ClientState):
         """
         Change the state of the agent
         State is indicated in local file 'state'
@@ -278,7 +278,7 @@ into the local ML engine."""
     
     #send models that saved locally to the aggregator
     async def send_models(self):
-        data_dict, performance = load_model_file(self.model_path, self.lmfile)
+        data_dict, performance_dict = load_model_file(self.model_path, self.lmfile)
         _, _, models, model_id = compatible_data_dict_read(data_dict)
         msg = generate_lmodel_update_message(self.id, model_id, models, performance_dict)
 
@@ -288,7 +288,7 @@ into the local ML engine."""
         logging.info(f'---Local models  sent----')
 
         #state transition to waiting_gm
-        self.tran_state(ClusterState.waiting_gm)
+        self.tran_state(ClientState.waiting_gm)
         logging.info(f'--- Client State is now waiting_gm ---')
 
 

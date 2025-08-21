@@ -10,7 +10,7 @@ import logging
 import numpy as np
 import time
 from typing import Dict, Any
-from fl_main.lib.util.data_struct import LimitedDict
+from fl_main.lib.util.data_struc import LimitedDict
 from fl_main.lib.util.helpers import generate_id, generate_model_id
 from fl_main.lib.util.states import IDPrefix
 
