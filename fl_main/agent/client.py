@@ -91,7 +91,7 @@ class Client :
 
     async def participate(self):
 
-        #agent read local model to tell it about the aggregator
+        #agent read local model to tell about its structure to aggregator
         # data_dict -> stores modes, performance_dict -> performance data
         data_dict, performance_dict  = load_model_file(self.model_path, self.lmfile)
         _, gene_time, modles, model_id = compatible_data_dict_read(data_dict)
@@ -99,14 +99,16 @@ class Client :
         logging.debug(modles)
 
         # message 
-        msg = generate_agent_participation_message(self.agent_name, self.id, model_id, modles,self.init_weights_flags, self.simulation_flag, self.exch_socket, gene_time, performance_dict, self.agent_ip)
+        msg = generate_agent_participation_message(self.agent_name, self.id, model_id, modles,self.init_weights_flag, self.simulation_flag, self.exch_socket, gene_time, performance_dict, self.agent_ip)
         logging.debug(msg)
-        logging.info(f"--- Init Response: {resp} ---")
+        
 
         # web socket generation while sending the message
         # Parse the response message
         # including some socket info and the actual round number
         resp = await send(msg, self.aggr_ip, self.reg_socket) # resp receives :  round info, port no to receive global model's exch_socket, port no. to send the local model to aggregator's msend_socket, updated agent id
+        print(f"in participate() resp : {resp}")
+        logging.info(f"--- Init Response: {resp} ---")
         self.round = resp[int(ParticipateConfirmationMSGLocation.round)]
         self.exch_socket = resp[int(ParticipateConfirmationMSGLocation.exch_socket)]
         self.msend_socket = resp[int(ParticipateConfirmationMSGLocation.agent_id)]
@@ -114,7 +116,7 @@ class Client :
         # Receiving the welcome message
         logging.info(f'--- {resp[int(ParticipateConfirmationMSGLocation.msg_type)]} Message Received ---')
 
-
+        #global model in the response is save locally by calling following funtion.
         self.save_model_from_message(resp, ParticipateConfirmationMSGLocation)
 
 ####### So, it was about the participation of the agent ###########
@@ -144,7 +146,7 @@ class Client :
                 await self.send_models()
 
             #waiting for global model           
-            elif state == ClientState.waiting_sgm:
+            elif state == ClientState.waiting_gm:
                 if self.is_polling == True:
                     await self.process_polling()
                 else : # Do nothing
@@ -188,7 +190,7 @@ class Client :
 
         if resp[int(PollingMSGLocation.msg_type)] == AggMsgType.update: #response msg contain updated model
             logging.info(f'--- Global Model Received ---')
-            self.save_mode_from_message(resp, GMDistributionMsgLocation)
+            self.save_model_from_message(resp, GMDistributionMsgLocation)
 
         else : # AggMsgType is "ack"
             logging.info(f'--- Global Model is NOT ready (ACK) ---')
@@ -293,7 +295,9 @@ into the local ML engine."""
 
 
     def send_initial_model(self, initial_models, num_samples=1, perf_val=0.0):
+        
         self.setup_sending_models(initial_models, num_samples, perf_val)
+        print("send_initial_models() executed")
 
 
     def send_trained_model(self, models, num_samples, perf_values):
@@ -318,14 +322,18 @@ into the local ML engine."""
         """
         # Create a unique model ID
         model_id = generate_model_id(IDPrefix.agent, self.id, time.time())
+        print(f"\n in setup_sending_models \n model_id => {model_id}")
 
         # Local Model evaluation (id, accuracy). 
 
         # store local ml model data
         data_dict = create_data_dict_from_models(model_id, models, self.id)
+        print(f"\n in setup_sending_models \n data_dict => {data_dict}")
+
 
         # store perfrormance data
         meta_data_dict = create_meta_data_dict(perf_val, num_samples)
+        print(f"\n in setup_sending_models \n meta_data_dict => {meta_data_dict}")
 
         save_model_file(data_dict, self.model_path, self.lmfile, meta_data_dict)
         logging.info(f'--- Local (Initial/Trained) Models saved ---')
@@ -339,8 +347,14 @@ into the local ML engine."""
     def wait_for_global_model(self):
 
         # Wait for global models (base models)
-        while (self.read_state() != ClientState.gm_ready):
+        print("\n wait_for_global_model function \n")
+        i = 0
+
+        while (self.read_state() != ClientState.gm_ready): #function waits until client state becomes gm_ready
             time.sleep(5)
+            i = i+1
+            print(f"in the loop for :{i}th time")
+            
 
         # load models from the local file
         data_dict, _ = load_model_file(self.model_path, self.gmfile)

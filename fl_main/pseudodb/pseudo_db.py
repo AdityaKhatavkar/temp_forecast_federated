@@ -83,7 +83,7 @@ class PseudoDB :
         """
 
         pm = self.parse_message(msg) # extract message content
-        self.dbhandler.insert_an_entry(*pm) 
+        self.dbhandler.insert_entry(*pm) 
 
         #save model
         model_id = msg[int(DBPushMsgLocation.model_id)]
@@ -98,7 +98,7 @@ class PseudoDB :
         r = msg[int(DBPushMsgLocation.round)]
         mt = msg[int(DBPushMsgLocation.model_type)]
         model_id = msg[int(DBPushMsgLocation.model_id)]
-        gene_time = msg[int(DBPushMsgLocation.gent_time)]
+        gene_time = msg[int(DBPushMsgLocation.gene_time)]
         meta_data = msg[int(DBPushMsgLocation.meta_data)]
 
         # if local model performance is saved

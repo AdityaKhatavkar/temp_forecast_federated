@@ -60,7 +60,7 @@ class ParticipateMSGLocation(IntEnum):
     agent_id = 1
     model_id = 2
     lmodels = 3
-    init_flag = 4
+    init_weight_flag = 4
     sim_flag = 5
     exch_socket = 6
     gene_time = 7

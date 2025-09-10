@@ -26,7 +26,7 @@ class Aggregator :
     def aggregate_local_models(self):
         """Compute an average model for each tensor"""
         for mname in self.sm.mnames :
-            self.sm.cluster_models[mname][0] = self.average_aggregate( self.sm.local_model_buffers[mname], self.sm.local_model_num_samples)
+            self.sm.cluster_models[mname][0] = self.average_aggregator( self.sm.local_model_buffers[mname], self.sm.local_model_num_samples)
         
         # Save the number of samples used
         self.sm.own_cluster_num_samples = sum(self.sm.local_model_num_samples)

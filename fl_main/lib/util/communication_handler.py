@@ -1,3 +1,6 @@
+# communication_handler.py
+
+
 import websockets
 """
 WebSockets are a communication protocol that allows two-way, real-time communication between a client (like a browser or mobile app) and a server, over a single TCP connection.
@@ -69,18 +72,24 @@ async def send(msg, ip, socket):
     """
     resp = None
     try:
+        print("\n entered in try block on send function \n")
         wsaddr = f'ws://{ip}:{socket}'
         async with websockets.connect(wsaddr, max_size=None, max_queue=None, ping_interval=None) as websocket:
+            print("\nmsg : ",msg)
             await websocket.send(pickle.dumps(msg))
             try:
+                print("\n entered in nested try block")
                 rmsg = await websocket.recv()
+                print(f" rmsg : {rmsg}")
                 resp = pickle.loads(rmsg)
             except:
                 # logging.info("--- Nothing to be received ---")
+                print("\n entered inner nested except block ")
                 pass
 
             return resp
     except:
+        print("\n entered to outer except block  ")
         logging.error("Connection lost to the agent: " + ip)
         logging.error(f'--- Message NOT Sent ---')
         return resp

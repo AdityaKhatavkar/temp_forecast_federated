@@ -34,7 +34,7 @@ class StateManager :
 
         
 
-    def initialze_model_info(self, lmodels, init_weights_flag):
+    def initialize_model_info(self, lmodels, init_weights_flag):
         """setup the initial global model to be used by agents"""
         """
         Initialize the structure of NNs (numpy.array) based on the first models received
@@ -43,7 +43,7 @@ class StateManager :
         :return:
         """
 
-        for key in lmodels.key():
+        for key in lmodels.keys():
             self.mnames.append(key)
 
         self.local_model_buffers = LimitedDict(self.mnames)

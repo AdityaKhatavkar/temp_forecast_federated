@@ -6,5 +6,6 @@
   "global_model_file_name": "gms.binaryfile",
   "state_file_name": "state",
   "init_weights_flag": 1,
-  "polling": 1
+  "polling": 1,
+  "_comment": "config_agent.json file"
 }

@@ -3,7 +3,7 @@
 '''
 What this file does ?
 1) communication processes bet. aggregator itself, agents,  database to coordinating agent participation,  aggregation of ml models.
-2) receiving local models
+2) receiving local smodels
 3) cluster model synthesis routine 
 '''
 
@@ -41,7 +41,9 @@ class server :
 
         # read the config file
         config_file = set_config_file("aggregator") 
-        self.config = read_config(config_file) #stores info from congig_aggregator.json file
+        self.config = read_config(config_file) #stores info from config_aggregator.json file
+        print("\nLoaded config:", self.config)
+
 
         # functional components
         self.sm = StateManager()
@@ -49,15 +51,20 @@ class server :
 
         # Set up FL server's IP address
         self.aggr_ip = self.config['aggr_ip'] #reads ip addr fron aggregator's configuration file
+        print(f"self.aggr_ip  : {self.aggr_ip}")
 
         # port numbers, websocket info
         self.reg_socket = self.config['reg_socket'] #reg_socket is used for agents toregister themselves 
         self.recv_socket = self.config['recv_socket'] #recv_socket used to reciv local models from agents
         self.exch_socket = self.config['exch_socket']#exch_socket is port no.used to send the global model back to the agent
+        print(f"self.reg_socket  : {self.reg_socket}")
+        print(f"self.recv_socket  : {self.recv_socket}")
+        print(f"self.exch_socket  : {self.exch_socket}")
 
         # Set up DB info to connect with DB
         self.db_ip = self.config['db_ip'] #ip addr of database server
         self.db_socket = self.config['db_socket'] #port no of database server
+        print(f"self.db_ip  , self.db_socket : {self.db_ip} & {self.db_socket}")
 
         # thresholds
         self.round_interval = self.config['round_interval']
@@ -87,6 +94,7 @@ class server :
         # Receiving participation messages
         msg = await receive(websocket)  # receive msg from agent and store in 'msg'
         logging.info(f'--- {msg[int(ParticipateMSGLocation.msg_type)]} Message Received ---')
+        logging.info(f"{msg}")
         logging.debug(f'Message: {msg}')
 
         # Check if it is a simulation run
@@ -97,7 +105,7 @@ class server :
         agent_id = msg[int(ParticipateMSGLocation.agent_id)]
         addr = msg[int(ParticipateMSGLocation.agent_ip)]
 
-        uid, ues = self.sm.add_agent(agent_name, agent_id, addr, es)
+        uid, ues = self.sm.add_agent(agent_name, agent_id, addr, es) #agent_id, socket
 
         # If the weights in the first models should be used as the init models
         # The very first agent connecting to the aggregator decides the shape of the models
@@ -146,7 +154,7 @@ class server :
         gene_time = msg[int(ParticipateMSGLocation.gene_time)]
         lmodels = msg[int(ParticipateMSGLocation.lmodels)] # <- Extract local models
         performance = msg[int(ParticipateMSGLocation.meta_data)]
-        init_weight_flag = bool(msg[int(ParticipateMSGLocation.init_flage)])
+        init_weight_flag = bool(msg[int(ParticipateMSGLocation.init_weight_flag)])
 
         # Initialize model info 
         self.sm.initialize_model_info(lmodels, init_weight_flag)
@@ -245,7 +253,7 @@ class server :
                 self.agg.aggregate_local_models()
 
                 # push cluster model to db
-                await self.push_cluster_models()
+                await self._push_cluster_models()
                 
                 if self.is_polling() == False: #send global model to all connected agents if polling method is not used
                     await self.send_cluster_models_to_all() 
@@ -279,7 +287,7 @@ class server :
         :return: Response message (List)
         """
         logging.debug(f'The local models to send: {local_models}')
-        return await self._push_models(agent_id, ModelType.local, local_models, model_id, gene_time, performance)
+        return await self.push_models(agent_id, ModelType.local, local_models, model_id, gene_time, performance)
     
 
 

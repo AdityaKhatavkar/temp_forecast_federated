@@ -31,6 +31,7 @@ def init_models() -> Dict[str,np.array]:
             models['model2'] = np.array([[3, 4], [5, 6]])
 
     logging.info(f'--- Model template generated ---')
+    print("init_models() function executed")
     return models
 
 
@@ -62,6 +63,8 @@ def training(models : Dict[str, np.array], init_flag: bool = False) -> Dict[str,
 
     time.sleep(10)
 
+    print("traning() func. form mimimal file executed")
+
     return models
 
 
@@ -90,23 +93,30 @@ if __name__ == "__main__":
     logging.basicConfig(level = logging.INFO)
     logging.info('----This is minimal example----')
 
-    fl_client  = Client()
+    #step 1 : Create client instance
+    fl_client  = Client() 
+    print("\nclient object created from minimal_ml_engine\n")
 
 
+    #step 2 : create template models (to tell the shapes)
     # Create a set of template models (to tell the shapes)
     initial_models = training(dict(), init_flag=True)
 
 
-    # Sending initial models
+    #step 3 : send initial models
     fl_client.send_initial_model(initial_models)
 
+    #step 4 : start the fl client
+    fl_client.start_fl_client()
 
     training_count = 0
     gm_arrival_count = 0
 
-
+    
+    #step 5 : run the local fl loop
     while judge_termination(training_count, gm_arrival_count):
         # Wait for Global models (base models)
+        print("\nentered in judge_termination loop\n")
         global_models = fl_client.wait_for_global_model()
         gm_arrival_count += 1
         print('Global Models:', global_models)
@@ -126,4 +136,5 @@ if __name__ == "__main__":
         perf_value = compute_performance(models, prep_test_data())
         fl_client.send_trained_model(models, 1, perf_value)
 
+    print("\nnot entered in judge_termination loop\n")
 
